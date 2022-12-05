@@ -1,5 +1,6 @@
 import os
 import sys
+
 sys.path.append('..')
 from options.test_options import TestOptions
 import torch
@@ -13,10 +14,10 @@ def video_concat(processed_file_savepath, name, video_names, audio_path):
     cmd = ['ffmpeg']
     num_inputs = len(video_names)
     for video_name in video_names:
-        cmd += ['-i', '\'' + str(os.path.join(processed_file_savepath, video_name + '.mp4'))+'\'',]
+        cmd += ['-i', str(os.path.join(processed_file_savepath, video_name + '.mp4')), ]
 
     cmd += ['-filter_complex hstack=inputs=' + str(num_inputs),
-            '\'' + str(os.path.join(processed_file_savepath, name+'.mp4')) + '\'', '-loglevel error -y']
+            str(os.path.join(processed_file_savepath, name + '.mp4')), '-loglevel error -y']
     cmd = ' '.join(cmd)
     os.system(cmd)
 
@@ -25,19 +26,21 @@ def video_concat(processed_file_savepath, name, video_names, audio_path):
 
 def video_add_audio(name, audio_path, processed_file_savepath):
     os.system('cp {} {}'.format(audio_path, processed_file_savepath))
-    cmd = ['ffmpeg', '-i', '\'' + os.path.join(processed_file_savepath, name + '.mp4') + '\'',
-                     '-i', audio_path,
-                     '-q:v 0',
-                     '-strict -2',
-                     '\'' + os.path.join(processed_file_savepath, 'av' + name + '.mp4') + '\'',
-                     '-loglevel error -y']
+    cmd = ['ffmpeg', '-i', os.path.join(processed_file_savepath, name + '.mp4'),
+           '-i', audio_path,
+           '-q:v 0',
+           '-strict -2',
+           os.path.join(processed_file_savepath, 'av' + name + '.mp4'),
+           '-loglevel error -y']
     cmd = ' '.join(cmd)
     os.system(cmd)
 
 
 def img2video(dst_path, prefix, video_path):
-    cmd = ['ffmpeg', '-i', '\'' + video_path + '/' + prefix + '%d.jpg'
-           + '\'', '-q:v 0', '\'' + dst_path + '/' + prefix + '.mp4' + '\'', '-loglevel error -y']
+    # cmd = ['ffmpeg', '-i', '\'' + video_path + '/' + prefix + '%d.jpg'
+    #        + '\'', '-q:v 0', '\'' + dst_path + '/' + prefix + '.mp4' + '\'', '-loglevel error -y']
+    cmd = ['ffmpeg', '-i', video_path + '/' + prefix + '%d.jpg', '-q:v 0',
+           dst_path + '/' + prefix + '.mp4', '-loglevel error -y']
     cmd = ' '.join(cmd)
     os.system(cmd)
 
@@ -69,14 +72,15 @@ def inference_single_audio(opt, path_label, model):
             util.save_torch_img(data_i['input'][num], os.path.join(save_paths[0], video_names[0] + str(idx) + '.jpg'))
             if opt.driving_pose:
                 util.save_torch_img(fake_image_driven_pose_a[num],
-                         os.path.join(save_paths[1], video_names[1] + str(idx) + '.jpg'))
+                                    os.path.join(save_paths[1], video_names[1] + str(idx) + '.jpg'))
                 util.save_torch_img(data_i['driving_pose_frames'][num],
-                         os.path.join(save_paths[2], video_names[2] + str(idx) + '.jpg'))
+                                    os.path.join(save_paths[2], video_names[2] + str(idx) + '.jpg'))
             else:
                 util.save_torch_img(fake_image_original_pose_a[num],
                                     os.path.join(save_paths[1], video_names[1] + str(idx) + '.jpg'))
             if is_mouth_frame:
-                util.save_torch_img(data_i['target'][num], os.path.join(save_paths[-1], video_names[-1] + str(idx) + '.jpg'))
+                util.save_torch_img(data_i['target'][num],
+                                    os.path.join(save_paths[-1], video_names[-1] + str(idx) + '.jpg'))
             idx += 1
 
     if opt.gen_video:
@@ -90,7 +94,6 @@ def inference_single_audio(opt, path_label, model):
 
 
 def main():
-
     opt = TestOptions().parse()
     opt.isTrain = False
     torch.manual_seed(0)
